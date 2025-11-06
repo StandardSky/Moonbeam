@@ -1,10 +1,12 @@
 cmake_minimum_required(VERSION 3.23)
 
-project(custom_server_client)
+project(moonbeam)
 
 set(SRC_FILES
-    ${PROJECT_SOURCE_DIR}/src/server.c
+    ${PROJECT_SOURCE_DIR}/src/main.c
+    ${PROJECT_SOURCE_DIR}/src/log.c
 )
 
-add_executable(server ${SRC_FILES})
-target_compile_options(server PRIVATE -Werror -Wall -Wpedantic)
+add_executable(${PROJECT_NAME} ${SRC_FILES})
+target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/include/)
+target_compile_options(${PROJECT_NAME} PRIVATE -Werror -Wall -Wpedantic)
