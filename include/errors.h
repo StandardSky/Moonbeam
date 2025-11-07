@@ -7,6 +7,8 @@ enum {
     ERR_BIND = 1003,
     ERR_LISTEN = 1004,
     ERR_ACCEPT = 1005
-} StatusCode;
+};
+
+int assert_code(int return_code, const char* fail_msg);
 
 #endif

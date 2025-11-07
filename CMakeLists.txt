@@ -5,6 +5,7 @@ project(moonbeam)
 set(SRC_FILES
     ${PROJECT_SOURCE_DIR}/src/main.c
     ${PROJECT_SOURCE_DIR}/src/log.c
+    ${PROJECT_SOURCE_DIR}/src/errors.c
 )
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
