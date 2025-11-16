@@ -4,51 +4,38 @@
 #include <netdb.h>
 #include <stdio.h>
 #include <errno.h>
+#include <string.h>
+#include <unistd.h>
 
-#include "version.h"
+#include "server.h"
 #include "errors.h"
 #include "log.h"
+#include "argparse.h"
 
-#define BACKLOG 1
+int main(int argc, char* argv[]) {
+    parse_args(&argc, argv);
 
-int setup_server(struct addrinfo**, int*);
-void print_arguments(void);
+    struct addrinfo *serv_info = NULL;
+    int sock_fd = 0;
 
-int main(void) {
-    struct addrinfo *server_info = NULL;
-    int socket_fd = 0;
-    
-    if(setup_server(&server_info, &socket_fd) != 0) return EXIT_FAILURE;
+    // redo args in a better way later
+    if(strcmp(argv[1], "server") == 0) {
 
-    freeaddrinfo(server_info);
+        if(setup_server(&serv_info, &sock_fd) != 0) return EXIT_FAILURE;
+
+        while(1) {
+            int incoming_sock_fd = 0;
+            struct sockaddr_storage incoming_addr = {0};
+            socklen_t incoming_addr_size = sizeof(incoming_addr);
+
+            if(assert_syscall(incoming_sock_fd = accept(sock_fd, (struct sockaddr*)&incoming_addr, &incoming_addr_size), "accept") == -1) return ERR_ACCEPT;
+
+            close(incoming_sock_fd);
+        }
+
+    }
+
+    close(sock_fd);
+    freeaddrinfo(serv_info);
     return 0;
-}
-
-int setup_server(struct addrinfo** server_info, int* socket_fd) {
-    struct addrinfo hints = {0};
-
-    hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;
-
-    int status = 0;
-
-    if(assert_code((status = getaddrinfo(NULL, "6543", &hints, server_info)), "getaddrinfo") == -1) return ERR_GETADDRINFO;
-
-    if(assert_code((*socket_fd = socket((*server_info)->ai_family, (*server_info)->ai_socktype, (*server_info)->ai_protocol)) == -1, "socket") == -1) return ERR_SOCKET;
-    if(assert_code((bind(*socket_fd, (*server_info)->ai_addr, (*server_info)->ai_addrlen) == -1), "bind") == -1) return ERR_BIND;
-    if(assert_code(listen(*socket_fd, BACKLOG) == -1, "listen") == -1) return ERR_LISTEN;
-
-    int yes = 1;
-    setsockopt(*socket_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
-
-    return 0;
-}
-
-void print_arguments(void) {
-    printf(
-        "%s - commandline p2p file sharing [VERSION %s]\n\n"
-        "Usage:\t%s [options] <ip address>\n",
-        PROG_NAME, PROG_VERSION, PROG_NAME
-    );
 }
